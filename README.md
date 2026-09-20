@@ -17,42 +17,9 @@ This implementation uses binary pointers for FIFO memory addressing, converts th
 
 ## Block Diagram
 
-```text
-                              +----------------------------------+
-                              |           async_fifo             |
-                              |                                  |
- wr_clk --------------------> | Write Clock Domain               |
- wr_en ---------------------> |                                  |
- wr_data -------------------> |  Binary Write Pointer            |
-                              |          |                       |
-                              |          v                       |
-                              |  Gray-code Write Pointer         |
-                              |          |                       |
-                              |          | 2-FF Synchronizer     |
-                              |          +--------------------+  |
-                              |                               |  |
-                              |  +-------------------------+  |  |
-                              |  |      FIFO Memory        |  |  |
-                              |  |      mem[DEPTH]         |  |  |
-                              |  +-------------------------+  |  |
-                              |                               |  |
-                              |  +--------------------+       |  |
-                              |  | 2-FF Synchronizer  | <-----+  |
-                              |  +--------------------+          |
-                              |          |                       |
-                              |          v                       |
-                              |  Gray-code Read Pointer          |
-                              |          |                       |
-                              |  Binary Read Pointer             |
-                              |                                  |
- rd_clk --------------------> | Read Clock Domain                |
- rd_en ---------------------> |                                  |
- rd_data <------------------- |                                  |
-                              +----------------------------------+
+![Asynchronous FIFO Block Diagram](docs/Async_FIFO%20block%20diagram.png)
 
-Write-domain status: full
-Read-domain status : empty
-```
+<br>
 
 ## Features
 
@@ -120,7 +87,7 @@ This FIFO uses a show-ahead / FWFT read interface.
 ├── tb/
 │   └── tb_async_fifo.sv
 └── docs/
-    ├── block_diagram.png
+    ├── Async_FIFO block diagram.png
     ├── verification_results.md
     └── waveform/
         ├── full_empty_boundary.png
