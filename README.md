@@ -1,2 +1,288 @@
 # async-fifo-cdc
 SystemVerilog asynchronous FIFO with Gray-code pointers, dual-clock CDC synchronization, and self-checking verification.
+
+<br>
+
+## Overview
+
+This repository contains an asynchronous FIFO RTL implementation written in SystemVerilog.
+The module is designed to transfer data between two independent clock domains:
+- Write clock domain: `wr_clk`
+- Read clock domain: `rd_clk`
+
+Because the write and read clocks can run at different frequencies and phases, pointer information must cross the clock-domain boundary safely.
+This implementation uses binary pointers for FIFO memory addressing, converts the pointers to Gray code for clock-domain crossing, and synchronizes each Gray-code pointer with a two-flop synchronizer in the destination clock domain.
+
+<br>
+
+## Block Diagram
+
+```text
+                              +----------------------------------+
+                              |           async_fifo             |
+                              |                                  |
+ wr_clk --------------------> | Write Clock Domain               |
+ wr_en ---------------------> |                                  |
+ wr_data -------------------> |  Binary Write Pointer            |
+                              |          |                       |
+                              |          v                       |
+                              |  Gray-code Write Pointer         |
+                              |          |                       |
+                              |          | 2-FF Synchronizer     |
+                              |          +--------------------+  |
+                              |                               |  |
+                              |  +-------------------------+  |  |
+                              |  |      FIFO Memory        |  |  |
+                              |  |      mem[DEPTH]         |  |  |
+                              |  +-------------------------+  |  |
+                              |                               |  |
+                              |  +--------------------+       |  |
+                              |  | 2-FF Synchronizer  | <-----+  |
+                              |  +--------------------+          |
+                              |          |                       |
+                              |          v                       |
+                              |  Gray-code Read Pointer          |
+                              |          |                       |
+                              |  Binary Read Pointer             |
+                              |                                  |
+ rd_clk --------------------> | Read Clock Domain                |
+ rd_en ---------------------> |                                  |
+ rd_data <------------------- |                                  |
+                              +----------------------------------+
+
+Write-domain status: full
+Read-domain status : empty
+```
+
+## Features
+
+| Item | Spec |
+|---|---|
+| RTL language | SystemVerilog |
+| Module name | `async_fifo` |
+| FIFO type | Asynchronous FIFO |
+| Default data width | Parameterized data width |
+| Default FIFO depth | Parameterized FIFO depth |
+| Memory addressing | Binary pointers |
+| CDC pointer transfer | Gray-code pointers |
+| CDC synchronizer | Two flip-flop synchronizer |
+| Write protection | Write operation is blocked when `full = 1` |
+| Read protection | Read operation is blocked when `empty = 1` |
+| Reset input | Active-low reset, `rst_n` |
+| Read-data style | Show-ahead / FWFT combinational read path |
+
+<br>
+
+### Module Parameters
+
+| Parameter | Default | Description |
+|---|---:|---|
+| `WIDTH` | 8 | FIFO data width in bits |
+| `DEPTH` | 16 | FIFO depth. Must be a power of two |
+
+#### Design Constraints
+
+- `DEPTH` must be a power of two.
+- The default configuration is `WIDTH = 8` and `DEPTH = 16`.
+
+<br>
+
+### Interface
+
+| Signal | Direction | Clock Domain | Description |
+|---|---|---|---|
+| `rst_n`    | Input  | Both | Active-low reset |
+| `wr_clk`   | Input  | Write | Write clock |
+| `wr_en`    | Input  | Write | Write enable |
+| `wr_data`  | Input  | Write | Write data |
+| `full`     | Output | Write | FIFO full status |
+| `rd_clk`   | Input  | Read | Read clock |
+| `rd_en`    | Input  | Read | Read enable |
+| `rd_data`  | Output | Read | Read data |
+| `empty`    | Output | Read | FIFO empty status |
+
+#### Read Interface
+
+This FIFO uses a show-ahead / FWFT read interface.
+- `rd_data` is valid when `empty = 0` and invalid when `empty = 1`.
+- `rd_en` consumes the current entry and advances the read pointer on the next `rd_clk` edge.
+
+<br>
+
+## Directory Structure
+
+```text
+.
+├── LICENSE
+├── README.md
+├── rtl/
+│   └── async_fifo.sv
+├── tb/
+│   └── tb_async_fifo.sv
+└── docs/
+    ├── block_diagram.png
+    ├── verification_results.md
+    └── waveform/
+        ├── full_empty_boundary.png
+        └── cdc_sync.png
+```
+
+## How to Simulate
+
+A complete testbench has not yet been uploaded.
+
+The planned simulation environment is Questa/ModelSim. After adding `tb/tb_async_fifo3.sv`, the intended command sequence is:
+
+```bash
+vlib work
+vlog rtl/async_fifo3.sv
+vlog tb/tb_async_fifo3.sv
+vsim -c tb_async_fifo3 -do "run -all; quit"
+```
+
+Example expected testbench configuration:
+
+| Item | Example Setting |
+|---|---|
+| Write clock period | 10 ns |
+| Read clock period | 14 ns |
+| Write clock frequency | 100 MHz |
+| Read clock frequency | approximately 71.4 MHz |
+| Reset | Assert `rst_n = 0`, then release reset before transactions |
+| Data check | Queue-based scoreboard |
+
+Different clock frequencies and non-aligned clock phases should be used to exercise the asynchronous clock-domain-crossing behavior.
+
+## Verification
+
+### Current Status
+
+| Verification Item | Status |
+|---|---|
+| RTL source upload | Complete |
+| Manual RTL review | In progress |
+| Directed simulation testbench | Planned |
+| Self-checking scoreboard | Planned |
+| Full-condition test | Planned |
+| Empty-condition test | Planned |
+| Simultaneous read/write test | Planned |
+| Randomized test | Planned |
+| SystemVerilog Assertions | Planned |
+| CDC analysis | Planned |
+| Reset-domain-crossing review | Planned |
+
+### Planned Test Cases
+
+- Reset both clock domains and confirm that the FIFO starts in the empty state.
+- Write data while `full = 0` and verify that the write pointer advances.
+- Read data while `empty = 0` and verify that the read pointer advances.
+- Verify first-in, first-out data ordering with a queue-based scoreboard.
+- Fill the FIFO to verify `full` assertion behavior.
+- Attempt writes while `full = 1` and verify that no additional data is accepted.
+- Drain the FIFO to verify `empty` assertion behavior.
+- Attempt reads while `empty = 1` and verify that the read pointer does not advance.
+- Apply different write/read clock periods and clock phases.
+- Exercise simultaneous write and read activity.
+- Assert and release reset during or around FIFO transactions.
+- Add assertions to detect overflow and underflow attempts.
+
+## Synthesis Results
+
+Synthesis has not yet been run for this initial RTL version.
+
+Planned target environments include FPGA synthesis flows such as Intel Quartus or AMD Vivado. Future updates may include the following information:
+
+| Item | Planned Result |
+|---|---|
+| Target FPGA device | To be selected |
+| Synthesis tool and version | To be recorded |
+| Maximum clock frequency | To be measured |
+| LUT / ALM utilization | To be measured |
+| Flip-flop utilization | To be measured |
+| Memory implementation | To be reviewed |
+| Timing closure status | To be measured |
+| CDC constraints | To be documented |
+
+Note: The current memory declaration and combinational read-data path may infer distributed logic or registers rather than a synchronous block RAM, depending on the selected FPGA family and synthesis tool.
+
+## Design Decisions
+
+### Binary and Gray-code pointers
+
+The FIFO maintains both binary and Gray-code pointers in each clock domain.
+
+- Binary pointers are used for indexing the FIFO memory.
+- Gray-code pointers are used when pointer values cross between clock domains.
+- A Gray-code pointer changes only one bit between adjacent count values, reducing the risk of sampling multiple changing bits during asynchronous transfer.
+
+### Two-flop synchronizers
+
+Each Gray-code pointer is transferred into the opposite clock domain through a two-stage flip-flop synchronizer.
+
+- The write clock domain synchronizes the read Gray-code pointer.
+- The read clock domain synchronizes the write Gray-code pointer.
+- The synchronizers reduce the probability that metastability propagates into local control logic.
+
+### Pointer width
+
+The pointers use one additional bit beyond the memory address width.
+
+```text
+Address width = $clog2(DEPTH)
+Pointer width = $clog2(DEPTH) + 1
+```
+
+The additional most-significant pointer bit distinguishes pointer wrap-around and is used in full-condition detection.
+
+### Status flags
+
+- `empty` is generated in the read clock domain by comparing the read pointer and synchronized write pointer.
+- `full` is generated in the write clock domain by comparing the write pointer and synchronized read pointer.
+- Write operations occur only when `wr_en && !full`.
+- Read pointer updates occur only when `rd_en && !empty`.
+
+### Reset strategy
+
+The design uses a common active-low reset input, `rst_n`.
+
+Reset assertion is asynchronous through sensitivity to the active-low reset. Reset release is locally synchronized in the write and read clock domains through `wr_rst_sync1/wr_rst_sync2` and `rd_rst_sync1/rd_rst_sync2`.
+
+## Limitations & Future Work
+
+### Current Limitations
+
+- A simulation testbench is not yet included.
+- No automated queue-based data scoreboard is included yet.
+- No simulation waveform or coverage result is currently included.
+- No SystemVerilog Assertions are currently included.
+- No formal verification has been performed.
+- No CDC lint analysis result is included.
+- No FPGA synthesis or timing-closure result is included.
+- The current code should be reviewed and verified carefully at full/empty boundary conditions.
+- The `DEPTH` parameter is intended for power-of-two values.
+- The combinational read-data path may not infer FPGA block RAM on all devices and tools.
+- As with any asynchronous FIFO, correct behavior depends on appropriate timing constraints and CDC-aware implementation practices.
+
+### Future Work
+
+1. Add a directed SystemVerilog testbench.
+2. Add independent write and read clock generation.
+3. Add a queue-based scoreboard for automatic FIFO ordering checks.
+4. Add full and empty boundary-condition tests.
+5. Add simultaneous read/write tests.
+6. Add randomized stimulus.
+7. Add SystemVerilog Assertions for overflow, underflow, and pointer/flag behavior.
+8. Add functional coverage and code coverage results.
+9. Add simulation waveform images.
+10. Perform FPGA synthesis using Quartus or Vivado.
+11. Record area, timing, and memory-inference results.
+12. Add FPGA-specific CDC attributes such as `ASYNC_REG` where supported.
+13. Perform static CDC and reset-domain-crossing review.
+14. Consider a synchronous-read memory version for block-RAM-oriented FPGA implementation.
+
+## References
+
+- Clifford E. Cummings, *Simulation and Synthesis Techniques for Asynchronous FIFO Design*
+- IEEE 1800 SystemVerilog Language Reference Manual
+- AMD Vivado Design Suite User Guide: CDC and timing constraints
+- Intel Quartus Prime documentation: CDC and synchronizer design guidance
