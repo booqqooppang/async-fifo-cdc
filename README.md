@@ -132,8 +132,8 @@ The design was synthesized successfully using Intel Quartus Prime Pro Edition.
 | Logic utilization | 29 / 80,330 ALMs (< 1%) |
 | Register utilization | 53 registers |
 | Block memory utilization | 128 / 12,021,760 bits (< 1%) |
-| `wr_clk` Fmax | [Actual Restricted Fmax] MHz |
-| `rd_clk` Fmax | [Actual Restricted Fmax] MHz |
+| `wr_clk` Fmax | 466.2MHz |
+| `rd_clk` Fmax | 568.5MHz |
 | Setup timing (`wr_clk`) | Passed, worst-case slack: 7.855 ns |
 | Setup timing (`rd_clk`) | Passed, worst-case slack: 12.241 ns |
 | Hold timing (`wr_clk`) | Passed, worst-case slack: 0.071 ns |
