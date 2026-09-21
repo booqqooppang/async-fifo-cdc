@@ -121,22 +121,27 @@ See [verification_results.md](docs/verification_results.md) for full test cases 
 
 ## Synthesis Results
 
-Synthesis has not yet been run for this initial RTL version.
-
-Planned target environments include FPGA synthesis flows such as Intel Quartus or AMD Vivado. Future updates may include the following information:
-
-| Item | Planned Result |
+The design was synthesized successfully using Intel Quartus Prime Pro Edition.
+| Item | Result |
 |---|---|
-| Target FPGA device | To be selected |
-| Synthesis tool and version | To be recorded |
-| Maximum clock frequency | To be measured |
-| LUT / ALM utilization | To be measured |
-| Flip-flop utilization | To be measured |
-| Memory implementation | To be reviewed |
-| Timing closure status | To be measured |
-| CDC constraints | To be documented |
+| Tool | Intel Quartus Prime Pro Edition 18.0.0 Build 219 |
+| Target family | Cyclone 10 GX |
+| Target device | 10CX220YF780I5G |
+| Top-level entity | async_fifo |
+| Compilation status | Successful |
+| Logic utilization | 29 / 80,330 ALMs (< 1%) |
+| Register utilization | 53 registers |
+| Block memory utilization | 128 / 12,021,760 bits (< 1%) |
+| `wr_clk` Fmax | [Actual Restricted Fmax] MHz |
+| `rd_clk` Fmax | [Actual Restricted Fmax] MHz |
+| Setup timing (`wr_clk`) | Passed, worst-case slack: 7.855 ns |
+| Setup timing (`rd_clk`) | Passed, worst-case slack: 12.241 ns |
+| Hold timing (`wr_clk`) | Passed, worst-case slack: 0.071 ns |
+| Hold timing (`rd_clk`) | Passed, worst-case slack: 0.057 ns |
 
-Note: The current memory declaration and combinational read-data path may infer distributed logic or registers rather than a synchronous block RAM, depending on the selected FPGA family and synthesis tool.
+The wr_clk and rd_clk domains are constrained as asynchronous clock groups in the SDC file.
+
+<br>
 
 ## Design Decisions
 
@@ -212,10 +217,3 @@ Reset assertion is asynchronous through sensitivity to the active-low reset. Res
 12. Add FPGA-specific CDC attributes such as `ASYNC_REG` where supported.
 13. Perform static CDC and reset-domain-crossing review.
 14. Consider a synchronous-read memory version for block-RAM-oriented FPGA implementation.
-
-## References
-
-- Clifford E. Cummings, *Simulation and Synthesis Techniques for Asynchronous FIFO Design*
-- IEEE 1800 SystemVerilog Language Reference Manual
-- AMD Vivado Design Suite User Guide: CDC and timing constraints
-- Intel Quartus Prime documentation: CDC and synchronizer design guidance
