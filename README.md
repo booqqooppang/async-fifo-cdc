@@ -170,12 +170,15 @@ Address width = $clog2(DEPTH)
 Pointer width = $clog2(DEPTH) + 1
 ```
 
-The additional most-significant pointer bit distinguishes pointer wrap-around and is used in full-condition detection.
+The pointers include one additional bit beyond the memory address width to distinguish pointer wrap-around from a simple address match. In binary-pointer terms, matching address bits with the same wrap state indicate an empty FIFO, while matching address bits with the write pointer one wrap ahead indicate a full FIFO.
+
+For Gray-code full detection, the write pointer is compared with the synchronized read pointer after inverting the two most-significant Gray-code bits. This is the Gray-code equivalent of detecting that the write pointer has advanced by one complete FIFO depth relative to the read pointer.
 
 ### Status flags
 
-- `empty` is generated in the read clock domain by comparing the read pointer and synchronized write pointer.
-- `full` is generated in the write clock domain by comparing the write pointer and synchronized read pointer.
+- `empty` is generated in the read clock domain by comparing the read pointer with the synchronized write pointer.
+- `full` is generated in the write clock domain by comparing the write pointer with the synchronized read pointer.
+- Comparisons use the synchronized (not raw) pointer values, since the raw pointer from the opposite clock domain has not passed through the two-flop synchronizer and could otherwise propagate metastability into the flag-generation logic.
 - Write operations occur only when `wr_en && !full`.
 - Read pointer updates occur only when `rd_en && !empty`.
 
@@ -183,37 +186,23 @@ The additional most-significant pointer bit distinguishes pointer wrap-around an
 
 The design uses a common active-low reset input, `rst_n`.
 
-Reset assertion is asynchronous through sensitivity to the active-low reset. Reset release is locally synchronized in the write and read clock domains through `wr_rst_sync1/wr_rst_sync2` and `rd_rst_sync1/rd_rst_sync2`.
+Reset assertion is asynchronous through sensitivity to the active-low reset. Reset release is locally synchronized in the write and read clock domains through `wr_rst_sync1/wr_rst_sync2` and `rd_rst_sync1/rd_rst_sync2`. Synchronizing the reset release separately in each domain avoids reset recovery/removal timing violations that could otherwise occur if a shared reset signal were released asynchronously relative to each domain's local clock.
+
+<br>
 
 ## Limitations & Future Work
 
 ### Current Limitations
 
-- A simulation testbench is not yet included.
-- No automated queue-based data scoreboard is included yet.
-- No simulation waveform or coverage result is currently included.
-- No SystemVerilog Assertions are currently included.
+- No SystemVerilog Assertions (SVA) are currently included.
 - No formal verification has been performed.
-- No CDC lint analysis result is included.
-- No FPGA synthesis or timing-closure result is included.
-- The current code should be reviewed and verified carefully at full/empty boundary conditions.
-- The `DEPTH` parameter is intended for power-of-two values.
-- The combinational read-data path may not infer FPGA block RAM on all devices and tools.
-- As with any asynchronous FIFO, correct behavior depends on appropriate timing constraints and CDC-aware implementation practices.
+- No static CDC lint analysis (e.g., SpyGlass CDC or Questa CDC) has been performed.
+- No functional or code coverage results are currently collected.
+- The `DEPTH` parameter must be a power of two; non-power-of-two values are not supported.
+- Quartus synchronizer identification and metastability optimization settings have not yet been reviewed.
 
 ### Future Work
 
-1. Add a directed SystemVerilog testbench.
-2. Add independent write and read clock generation.
-3. Add a queue-based scoreboard for automatic FIFO ordering checks.
-4. Add full and empty boundary-condition tests.
-5. Add simultaneous read/write tests.
-6. Add randomized stimulus.
-7. Add SystemVerilog Assertions for overflow, underflow, and pointer/flag behavior.
-8. Add functional coverage and code coverage results.
-9. Add simulation waveform images.
-10. Perform FPGA synthesis using Quartus or Vivado.
-11. Record area, timing, and memory-inference results.
-12. Add FPGA-specific CDC attributes such as `ASYNC_REG` where supported.
-13. Perform static CDC and reset-domain-crossing review.
-14. Consider a synchronous-read memory version for block-RAM-oriented FPGA implementation.
+- Review CDC synchronizer recognition and metastability-related settings in Quartus, and verify the Gray-pointer synchronizer chains and reset-domain-crossing timing in the TimeQuest Timing Analyzer.
+- Optionally extend the directed testbench with randomized read/write enable patterns and varied clock ratios.
+- Consider a dedicated CDC lint tool (e.g., SpyGlass CDC, Questa CDC) for a more rigorous static CDC verification pass, if access becomes available.
