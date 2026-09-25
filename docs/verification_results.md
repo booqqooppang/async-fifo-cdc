@@ -41,35 +41,3 @@ Example expected testbench configuration:
 
 Different clock frequencies and non-aligned clock phases should be used to exercise the asynchronous clock-domain-crossing behavior.
 
-## Verification
-
-### Current Status
-
-| Verification Item | Status |
-|---|---|
-| RTL source upload | Complete |
-| Manual RTL review | In progress |
-| Directed simulation testbench | Planned |
-| Self-checking scoreboard | Planned |
-| Full-condition test | Planned |
-| Empty-condition test | Planned |
-| Simultaneous read/write test | Planned |
-| Randomized test | Planned |
-| SystemVerilog Assertions | Planned |
-| CDC analysis | Planned |
-| Reset-domain-crossing review | Planned |
-
-### Planned Test Cases
-
-- Reset both clock domains and confirm that the FIFO starts in the empty state.
-- Write data while `full = 0` and verify that the write pointer advances.
-- Read data while `empty = 0` and verify that the read pointer advances.
-- Verify first-in, first-out data ordering with a queue-based scoreboard.
-- Fill the FIFO to verify `full` assertion behavior.
-- Attempt writes while `full = 1` and verify that no additional data is accepted.
-- Drain the FIFO to verify `empty` assertion behavior.
-- Attempt reads while `empty = 1` and verify that the read pointer does not advance.
-- Apply different write/read clock periods and clock phases.
-- Exercise simultaneous write and read activity.
-- Assert and release reset during or around FIFO transactions.
-- Add assertions to detect overflow and underflow attempts.
