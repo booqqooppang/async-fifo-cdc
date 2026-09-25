@@ -111,7 +111,7 @@ vsim -c tb_async_fifo -do "run -all; quit"
 
 ## Verification
 
-The design is verified with a directed, self-checking testbench using a queue-based scoreboard. Test scenarios cover full/empty boundary conditions, simultaneous read/write, non-aligned clock phases, and reset assertion during transactions.
+The design is verified with a directed, self-checking testbench using a queue-based scoreboard. Test scenarios cover full/empty boundary conditions and pointer/flag behavior under independent write and read clock frequencies.
 
 ![CDC synchronization waveform](docs/waveform/cdc_sync.png)
 
