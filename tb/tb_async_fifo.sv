@@ -52,12 +52,12 @@ module tb_async_fifo;
 	always @(posedge rd_clk) begin
 		if(rst_n && rd_en && !empty) begin
 			if(q.size() == 0)
-			    $fatal(1, “Scoreboard underflow”);
+				$fatal(1, "Scoreboard underflow");
 			    
 			if(rd_data !== q[0])
 			    $fatal(1, "Data mismatch: got %h, expected %h", rd_data, q[0]);
 			
-			q.pop_front();
+			void'(q.pop_front());
 		end
 	end
 
@@ -65,19 +65,19 @@ module tb_async_fifo;
         input logic [WIDTH-1:0] data
     );
 		@(negedge wr_clk);
-	    wr_en = 1’b1;
+	    wr_en = 1'b1;
     	wr_data = data;
 
 	    @(negedge wr_clk);
-	    wr_en = 1’b0;
+	    wr_en = 1'b0;
 	endtask
 
 	task automatic do_read;
 		@(negedge rd_clk);
-	    rd_en = 1’b1;
+	    rd_en = 1'b1;
 
 		@(negedge rd_clk);
-	    rd_en = 1’b0;
+	    rd_en = 1'b0;
 
 	endtask
 	
@@ -93,12 +93,12 @@ module tb_async_fifo;
 		repeat (3) @(posedge wr_clk);
         repeat (3) @(posedge rd_clk);
 		
-		if(full !== 1’b0 || empty !== 1’b1)
+		if(full !== 1'b0 || empty !== 1'b1)
 			$fatal(1, "Reset state failure: full=%b empty=%b", full, empty);
-		$display(“[PASS] Reset initialization”);
+		$display("[PASS] Reset initialization");
 
 		for (int i = 1; i <= 5; i++) 
-			do_write(i*8’h11);
+			do_write(i*8'h11);
 
 		repeat(3) @(posedge rd_clk);
 		if (empty !== 1'b0)
