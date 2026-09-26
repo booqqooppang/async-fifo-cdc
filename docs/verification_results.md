@@ -71,10 +71,10 @@ The testbench performs the following checks:
 
 Write pointer fills the FIFO to `DEPTH`, `full` asserts, a blocked write is issued, the FIFO is drained, and `empty` re-asserts.
 
-![Full/empty boundary waveform](docs/waveform/full_empty_boundary.png)
+![Full/empty boundary waveform](waveform/full_empty_boundary.png)
 
 **CDC synchronization**
 
 The write Gray-code pointer propagates through the two-flop synchronizer into the read clock domain before `empty` deasserts.
 
-![CDC synchronization waveform](docs/waveform/cdc_sync.png)
+![CDC synchronization waveform](waveform/cdc_sync.png)
