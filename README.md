@@ -76,39 +76,6 @@ This FIFO uses a show-ahead / FWFT read interface.
 
 <br>
 
-## Directory Structure
-
-```text
-.
-├── LICENSE
-├── README.md
-├── rtl/
-│   └── async_fifo.sv
-├── tb/
-│   └── tb_async_fifo.sv
-└── docs/
-    ├── Async_FIFO block diagram.png
-    ├── verification_results.md
-    └── waveform/
-        ├── full_empty_boundary.png
-        └── cdc_sync.png
-```
-
-<br>
-
-## How to Simulate
-
-Example simulation flow using Questa/ModelSim:
-
-```bash
-vlib work
-vlog rtl/async_fifo.sv
-vlog tb/tb_async_fifo.sv
-vsim -c tb_async_fifo -do "run -all; quit"
-```
-
-<br>
-
 ## Verification
 
 The design is verified with a directed, self-checking testbench using a queue-based scoreboard. Test scenarios cover full/empty boundary conditions and pointer/flag behavior under independent write and read clock frequencies.
@@ -206,3 +173,39 @@ Reset assertion is asynchronous through sensitivity to the active-low reset. Res
 - Review CDC synchronizer recognition and metastability-related settings in Quartus, and verify the Gray-pointer synchronizer chains and reset-domain-crossing timing in the TimeQuest Timing Analyzer.
 - Optionally extend the directed testbench with randomized read/write enable patterns and varied clock ratios.
 - Consider a dedicated CDC lint tool (e.g., SpyGlass CDC, Questa CDC) for a more rigorous static CDC verification pass, if access becomes available.
+
+<br>
+
+## How to Simulate
+
+Example simulation flow using Questa/ModelSim:
+
+```bash
+vlib work
+vlog rtl/async_fifo.sv
+vlog tb/tb_async_fifo.sv
+vsim -c tb_async_fifo -do "run -all; quit"
+```
+
+<br>
+
+## Directory Structure
+
+```text
+.
+├── LICENSE
+├── README.md
+├── rtl/
+│   └── async_fifo.sv
+├── tb/
+│   └── tb_async_fifo.sv
+└── docs/
+    ├── Async_FIFO block diagram.png
+    ├── verification_results.md
+    └── waveform/
+        ├── full_empty_boundary.png
+        └── cdc_sync.png
+```
+
+<br>
+
